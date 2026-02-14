@@ -1,0 +1,5 @@
+- 入力値の厳格なバリデーション（DTO + class-validator）
+- SQLインジェクション対策（Firestore使用により自動対応）
+- XSS対策（Reactのデフォルトエスケープ + DOMPurifyで追加サニタイズ）
+- HTTPS通信の強制
+- 環境変数の厳格な管理（`.env`ファイルは必ずGitignore）

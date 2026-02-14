@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(cat ./*)",
+      "Bash(echo *)",
+      "Bash(ls *)",
+      "Bash(find *)",
+      "Bash(tree ./*)",
+      "Bash(mkdir -p ./*)",
+      "Bash(chmod +x ./.claude/scripts/*)",
+      "Bash(git add ./*)",
+      "Bash(git branch *)",
+      "Bash(git checkout *)",
+      "Bash(git commit *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git mv ./* ./*)",
+      "Bash(git pull)",
+      "Bash(git rm ./*)",
+      "Bash(git show *)",
+      "Bash(git stash *)",
+      "Bash(git status *)",
+      "Bash(docker compose *)",
+      "Bash(docker ps *)",
+      "Bash(docker logs *)",
+      "Bash(npm install)",
+      "Bash(npm run *)",
+      "Bash(npx tsc *)",
+      "Bash(npx next lint)",
+      "Bash(./.claude/scripts/*.sh)",
+      "Bash(codex *)",
+      "Bash(/usr/local/bin/codex *)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)"
+    ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true
+  }
+}
