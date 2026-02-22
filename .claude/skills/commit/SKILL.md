@@ -8,25 +8,19 @@ conventional commit 形式でのコミットと、Codex レビューを組み合
 
 ## フロー
 ```
-1. Docker内で型チェック実行
-   docker compose exec frontend npx tsc --noEmit
+1. test スキルを実行（型チェック・lint）
 
-2. Docker内でlint実行
-   docker compose exec frontend npm run lint
+2. git diff --cached --stat で変更内容を確認
 
-3. エラーがあれば修正し、再実行
-
-4. git diff --cached --stat で変更内容を確認
-
-5. conventional commit メッセージを生成
+3. conventional commit メッセージを生成
    - type: feat / fix / refactor / chore / docs / style / test
    - scope: 変更対象のモジュール名
    - title: 簡潔な変更概要
    - body: 変更の詳細
 
-6. ユーザーに確認を求める
+4. ユーザーに確認を求める
 
-7. 承認後コミット
+5. 承認後コミット
 ```
 
 ## コミットメッセージフォーマット

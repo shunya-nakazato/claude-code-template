@@ -1,4 +1,23 @@
 {
-  "hooks": {
+  "language": "japanese",
+  "plansDirectory": "./.claude/plans",
+  "hooks": {},
+  "teammateMode": "auto",
+  "permissions": {
+    "deny": [
+      "Bash(rm -rf *)",
+      "Edit(/*)",
+      "Edit(~/*)",
+      "Edit(../*)",
+      "Edit(../../*)",
+      "Write(/*)",
+      "Write(~/*)",
+      "Write(../*)",
+      "Write(../../*)"
+    ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true
   }
 }
