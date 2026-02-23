@@ -4,9 +4,9 @@
 # codex コマンドのGO判定・PASS判定を簡易実行する
 #
 # 使用方法:
-#   ./.claude/scripts/codex.sh go [plan-file]   # GO判定（plan.mdのレビュー）
-#   ./.claude/scripts/codex.sh pass             # PASS判定（最終確認）
-#   ./.claude/scripts/codex.sh review           # コードレビュー
+#   ./.claude/skills/codex/codex.sh go [plan-file]   # GO判定（plan.mdのレビュー）
+#   ./.claude/skills/codex/codex.sh pass             # PASS判定（最終確認）
+#   ./.claude/skills/codex/codex.sh review           # コードレビュー
 #
 # 引数:
 #   go    - Phase 1完了時のplan承認判定
@@ -71,6 +71,8 @@ run_go() {
     plan_content=$(cat "$plan_file")
 
     $CODEX exec "以下のplan.mdをレビューしてください。
+指摘は致命的な欠陥やセキュリティホールなど重要度が中〜高のものに限定してください。
+軽微なスタイルや好みの問題は指摘不要です。
 問題なければ GO、問題があれば FAIL と修正点を返答。
 
 $plan_content"
@@ -84,13 +86,15 @@ run_pass() {
 1. テスト: 全パスか
 2. plan.md: 全ステップ完了か
 
+指摘は致命的な欠陥やセキュリティホールなど重要度が中〜高のものに限定してください。
+軽微なスタイルや好みの問題は指摘不要です。
 問題なければ PASS"
 }
 
 # コードレビュー
 run_review() {
     log_info "コードレビューを実行"
-    $CODEX exec review
+    $CODEX exec review "指摘は致命的な欠陥やセキュリティホールなど重要度が中〜高のものに限定してください。軽微なスタイルや好みの問題は指摘不要です。"
 }
 
 # 使用方法を表示

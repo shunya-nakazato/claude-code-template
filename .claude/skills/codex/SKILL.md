@@ -1,27 +1,27 @@
 # Codex CLI コマンド
 
 Codex: `/usr/local/bin/codex`
-ラッパースクリプト: `./.claude/scripts/codex.sh`
+ラッパースクリプト: `./.claude/skills/codex/codex.sh`
 
 ## 基本コマンド
 ```bash
-./.claude/scripts/codex.sh review           # コードレビュー
-./.claude/scripts/codex.sh go [plan-file]   # GO判定（planレビュー）
-./.claude/scripts/codex.sh pass             # PASS判定（最終確認）
+./.claude/skills/codex/codex.sh review           # コードレビュー
+./.claude/skills/codex/codex.sh go [plan-file]   # GO判定（planレビュー）
+./.claude/skills/codex/codex.sh pass             # PASS判定（最終確認）
 ```
 
 ## GO判定 (Phase 1完了時)
 ```bash
 # 最新のplanファイルを自動検出してレビュー
-./.claude/scripts/codex.sh go
+./.claude/skills/codex/codex.sh go
 
 # 特定のplanファイルを指定してレビュー
-./.claude/scripts/codex.sh go .claude/plans/plan-XXXXXXXX.md
+./.claude/skills/codex/codex.sh go .claude/plans/plan-XXXXXXXX.md
 ```
 
 ## PASS判定 (Phase 2完了時)
 ```bash
-./.claude/scripts/codex.sh pass
+./.claude/skills/codex/codex.sh pass
 ```
 
 ## 判定結果
