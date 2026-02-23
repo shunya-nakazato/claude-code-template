@@ -8,19 +8,17 @@ conventional commit 形式でのコミットと、Codex レビューを組み合
 
 ## フロー
 ```
-1. test スキルを実行（型チェック・lint）
+1. git diff --cached --stat で変更内容を確認
 
-2. git diff --cached --stat で変更内容を確認
-
-3. conventional commit メッセージを生成
+2. conventional commit メッセージを生成
    - type: feat / fix / refactor / chore / docs / style / test
    - scope: 変更対象のモジュール名
    - title: 簡潔な変更概要
    - body: 変更の詳細
 
-4. ユーザーに確認を求める
+3. ユーザーに確認を求める
 
-5. 承認後コミット
+4. 承認後コミット
 ```
 
 ## コミットメッセージフォーマット
