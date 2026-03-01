@@ -1,17 +1,15 @@
 #!/bin/bash
 
 # Codex CLI ラッパースクリプト
-# codex コマンドのGO判定・PASS判定を簡易実行する
+# codex コマンドのGO判定・コードレビューを簡易実行する
 #
 # 使用方法:
 #   ./.claude/skills/codex/codex.sh go [plan-file]   # GO判定（plan.mdのレビュー）
-#   ./.claude/skills/codex/codex.sh pass             # PASS判定（最終確認）
 #   ./.claude/skills/codex/codex.sh review           # コードレビュー
 #
 # 引数:
-#   go    - Phase 1完了時のplan承認判定
+#   go    - planの承認判定
 #           plan-file を指定しない場合、最新のplan-*.mdを使用
-#   pass  - Phase 2完了時の実装承認判定
 #   review - コードレビュー
 
 set -e
@@ -25,7 +23,7 @@ NC='\033[0m'
 
 CODEX="/usr/local/bin/codex"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 PLANS_DIR="$PROJECT_ROOT/.claude/plans"
 
 # ヘルパー関数
@@ -78,19 +76,6 @@ run_go() {
 $plan_content"
 }
 
-# PASS判定: 最終確認
-run_pass() {
-    log_info "PASS判定を実行"
-
-    $CODEX exec review "最終確認:
-1. テスト: 全パスか
-2. plan.md: 全ステップ完了か
-
-指摘は致命的な欠陥やセキュリティホールなど重要度が中〜高のものに限定してください。
-軽微なスタイルや好みの問題は指摘不要です。
-問題なければ PASS"
-}
-
 # コードレビュー
 run_review() {
     log_info "コードレビューを実行"
@@ -103,7 +88,6 @@ usage() {
     echo ""
     echo "コマンド:"
     echo "  go [plan-file]  GO判定（plan.mdのレビュー）"
-    echo "  pass            PASS判定（最終確認）"
     echo "  review          コードレビュー"
     exit 1
 }
@@ -122,9 +106,6 @@ main() {
     case "$command" in
         go)
             run_go "$@"
-            ;;
-        pass)
-            run_pass
             ;;
         review)
             run_review

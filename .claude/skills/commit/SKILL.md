@@ -26,9 +26,9 @@ conventional commit 形式でのコミットと、Codex レビューを組み合
 <type>(<scope>): <title>
 
 <body>
-
-Ref: plan-<識別子>.md
 ```
+
+対応するプランファイルが存在する場合のみ、フッターに `Ref: plan-<識別子>.md` を追加する。
 
 ## 禁止事項
 - 余計なフッター（`Generated with...`, `Co-Authored-By`等）は含めない
