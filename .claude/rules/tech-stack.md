@@ -1,27 +1,8 @@
-< 以下の内容を参考とし、プロジェクトの実態に基づいて更新すること >
+< 以下の内容について記載する >
 
-## 実行環境
-- **コンテナ**: Docker, Docker Compose
-
-## フロントエンド
-- **フレームワーク**: Next.js 14+ (App Router)
-- **言語**: TypeScript 5+
-- **スタイリング**: Tailwind CSS + shadcn/ui
-- **状態管理**: React Context API
-- **HTTP通信**: Fetch API / Axios
-
-## バックエンド
-- **フレームワーク**: NestJS 10+
-- **言語**: TypeScript 5+
-- **データベース**: Firebase Firestore
-- **認証**: Firebase Authentication
-- **リアルタイム通信**: MQTT (Mosquitto)
-- **API仕様**: RESTful API + OpenAPI/Swagger
-
-## インフラ・その他
-- **ホスティング**: Vercel (フロントエンド)
-- **MQTTブローカー**: Mosquitto (クラウドサーバー上で稼働)
-- **CI/CD**: GitHub Actions
-- **パッケージマネージャー**: npm
-
----
+<!--
+- 実行環境（コンテナ、ローカル等）
+- フロントエンド（フレームワーク、言語、スタイリング、状態管理等）
+- バックエンド（フレームワーク、言語、DB、認証等）
+- インフラ・その他（ホスティング、CI/CD、パッケージマネージャー等）
+-->
