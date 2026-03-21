@@ -4,6 +4,25 @@
   },
   "language": "japanese",
   "plansDirectory": "./.claude/plans",
-  "hooks": {},
-  "teammateMode": "auto"
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/bash-checker.sh",
+            "statusMessage": "Bashコマンドチェック中..."
+          }
+        ]
+      }
+    ]
+  },
+  "teammateMode": "auto",
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"]
+    }
+  }
 }
