@@ -41,8 +41,7 @@
 | 1 | プロジェクト概要 | @.claude/rules/project-info.md |
 | 2 | 技術スタック | @.claude/rules/tech-stack.md |
 | 3 | コーディングルール | @.claude/rules/code-rule.md |
-| 4 | Git | @.claude/rules/git-rule.md |
-| 5 | ビルド・デプロイ | @.claude/rules/cicd-rule.md |
-| 6 | テスト | @.claude/rules/test-rule.md |
-| 7 | セキュリティ | @.claude/rules/security-mgmt.md |
-| 8 | プラン | @.claude/rules/plan-rule.md |
+| 4 | ビルド・デプロイ | @.claude/rules/cicd-rule.md |
+| 5 | テスト | @.claude/rules/test-rule.md |
+| 6 | セキュリティ | @.claude/rules/security-mgmt.md |
+| 7 | プラン | @.claude/rules/plan-rule.md |
