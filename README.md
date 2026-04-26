@@ -15,5 +15,6 @@ Claude Code を活用した開発プロジェクトのテンプレートリポ�
 - `.claude/rules/` — プロジェクト全体の不変ルールを定義するファイル群
 - `.claude/skills/` — ワークフローを自動化するスキル（`/commit`, `/plan-review` 等）
 - `.claude/plans/` — タスクごとの詳細プラン
-- `.claude/tasks/` — タスク一覧と学びの記録
+- `.claude/tasks/` — タスク一覧（gitignore 対象）
+- `.claude/lessons.md` — 開発中に蓄積する学びの記録
 - `docs/` — 開発中に成長するドキュメント

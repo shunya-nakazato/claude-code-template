@@ -8,7 +8,7 @@
 ## ワークフロー
 
 <important if="タスク開始時・コンテキスト復元後">
-**タスク実行前に `.claude/tasks/lessons.md` を必ず読み込む**（スキップ厳禁）
+**タスク実行前に `.claude/lessons.md` を必ず読み込む**（スキップ厳禁）
 </important>
 
 <important if="実装に着手しようとしている時">
@@ -16,13 +16,13 @@
 </important>
 
 ### タスク管理手順
-1. `.claude/tasks/lessons.md` を読む
+1. `.claude/lessons.md` を読む
 2. `.claude/tasks/todo.md` に計画を書く
 3. `.claude/plans/` にプランを作成 → `/plan-review` で GO 判定を得る
 4. 実装 → 進捗を随時マーク
 5. 検証（テスト実行・差分確認）→ 完了マーク
 6. `docs/` に実装内容の QA ドキュメントを追加・更新する
-7. 修正を受けたら `.claude/tasks/lessons.md` を更新
+7. 修正を受けたら `.claude/lessons.md` を更新
 
 ### サブエージェント戦略
 - コンテキストを共有せずに実行できるタスクにはサブエージェントを積極活用
