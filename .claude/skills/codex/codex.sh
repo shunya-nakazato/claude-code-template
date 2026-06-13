@@ -21,7 +21,27 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-CODEX="/usr/local/bin/codex"
+# PATH 上の codex を優先し、見つからない場合のみ既知の絶対パスを順に試す
+# (旧 Caskroom 版を直指ししないことで npm/nvm 経由の最新版を使えるようにする)
+resolve_codex() {
+    if command -v codex >/dev/null 2>&1; then
+        command -v codex
+        return 0
+    fi
+    for candidate in \
+        "$HOME/.nvm/versions/node/$(node --version 2>/dev/null | tr -d 'v')/bin/codex" \
+        "/usr/local/bin/codex" \
+        "/opt/homebrew/bin/codex"
+    do
+        if [ -x "$candidate" ]; then
+            echo "$candidate"
+            return 0
+        fi
+    done
+    return 1
+}
+
+CODEX="$(resolve_codex || true)"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 PLANS_DIR="$PROJECT_ROOT/.claude/plans"
@@ -37,10 +57,13 @@ log_error() {
 
 # codex コマンドの存在確認
 check_codex() {
-    if [ ! -x "$CODEX" ]; then
-        log_error "codex コマンドが見つかりません: $CODEX"
+    if [ -z "$CODEX" ] || [ ! -x "$CODEX" ]; then
+        log_error "codex コマンドが見つかりません (PATH / 既知パスを探索)"
+        log_error "  PATH=$PATH"
+        log_error "  npm 版の場合: npm i -g @openai/codex"
         exit 1
     fi
+    log_info "codex 解決先: $CODEX"
 }
 
 # 最新のplanファイルを取得
@@ -52,6 +75,34 @@ get_latest_plan() {
         exit 1
     fi
     echo "$latest"
+}
+
+# 出力を tee して stdout に流しつつ、空応答を検出する
+# (codex exec が無音で終了するケースがあるため呼び出し側で検証する)
+run_codex_capture() {
+    local tmp
+    tmp=$(mktemp)
+    local exit_code=0
+
+    # stderr は分離せず stdout と統合して見せる (Codex 進捗ログを失わないため)
+    "$@" 2>&1 | tee "$tmp"
+    exit_code=${PIPESTATUS[0]}
+
+    if [ "$exit_code" -ne 0 ]; then
+        log_error "codex が異常終了しました (exit=$exit_code)"
+        rm -f "$tmp"
+        return "$exit_code"
+    fi
+
+    # GO/FAIL のいずれも含まないか、ファイルが空なら無音応答とみなす
+    if [ ! -s "$tmp" ]; then
+        log_error "codex の出力が空でした。再実行するか手動でレビューしてください"
+        rm -f "$tmp"
+        return 1
+    fi
+
+    rm -f "$tmp"
+    return 0
 }
 
 # GO判定: planのレビュー
@@ -68,7 +119,7 @@ run_go() {
     local plan_content
     plan_content=$(cat "$plan_file")
 
-    $CODEX exec "以下のplan.mdをレビューしてください。
+    run_codex_capture "$CODEX" exec "以下のplan.mdをレビューしてください。
 
 レビュー基準:
 - 致命的なバグ、セキュリティホール、データ損失リスクのみ指摘する
@@ -84,7 +135,7 @@ $plan_content"
 # コードレビュー
 run_review() {
     log_info "コードレビューを実行"
-    $CODEX exec review "指摘は致命的な欠陥やセキュリティホールなど重要度が中〜高のものに限定してください。軽微なスタイルや好みの問題は指摘不要です。"
+    run_codex_capture "$CODEX" exec review "指摘は致命的な欠陥やセキュリティホールなど重要度が中〜高のものに限定してください。軽微なスタイルや好みの問題は指摘不要です。"
 }
 
 # 使用方法を表示

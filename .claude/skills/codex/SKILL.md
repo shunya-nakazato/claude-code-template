@@ -1,7 +1,15 @@
 # Codex CLI コマンド
 
-Codex: `/usr/local/bin/codex`
+Codex: PATH 上の `codex` を自動解決する (`@openai/codex` npm 版を推奨)
+未インストール時は `npm i -g @openai/codex`
 ラッパースクリプト: `./.claude/skills/codex/codex.sh`
+
+## トラブルシュート
+| 症状 | 対応 |
+|------|------|
+| `codex コマンドが見つかりません` | `command -v codex` でパスを確認。PATH に無ければ `npm i -g @openai/codex` |
+| `codex の出力が空でした` | レート制限 / セッション切れの可能性。再実行するか手動レビューに切り替える |
+| `codex が異常終了しました` | exit code を確認しログを再実行で取得。認証切れなら `codex login` |
 
 ## 基本コマンド
 ```bash
