@@ -18,11 +18,5 @@
       }
     ]
   },
-  "teammateMode": "auto",
-  "mcpServers": {
-    "playwright": {
-      "command": "npx",
-      "args": ["@playwright/mcp@latest"]
-    }
-  }
+  "teammateMode": "auto"
 }
