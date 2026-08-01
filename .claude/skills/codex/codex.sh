@@ -94,7 +94,8 @@ run_codex_capture() {
         return "$exit_code"
     fi
 
-    # GO/FAIL のいずれも含まないか、ファイルが空なら無音応答とみなす
+    # ファイルが空なら無音応答とみなす
+    # (GO/FAIL マーカーの検証は plan-codex-error-skip で導入予定。現状は空チェックのみ)
     if [ ! -s "$tmp" ]; then
         log_error "codex の出力が空でした。再実行するか手動でレビューしてください"
         rm -f "$tmp"

@@ -4,6 +4,12 @@
   },
   "language": "japanese",
   "plansDirectory": "./.claude/plans",
+  "permissions": {
+    "allow": [
+      "Write(.claude/plans/**)",
+      "Edit(.claude/plans/**)"
+    ]
+  },
   "hooks": {
     "PreToolUse": [
       {

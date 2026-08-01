@@ -37,7 +37,7 @@ conventional commit 形式でのコミットと、Codex レビューを組み合
 - コミットメッセージ（title・body とも）は **英語で記載する**
 
 ## 禁止事項
-- 余計なフッター（`Generated with...`, `Co-Authored-By`等）は含めない
+- 余計なフッター（`Generated with...`, `Co-Authored-By`等）は含めない（Claude Code がデフォルトで付与するフッターも対象。本テンプレートの意図的な上書きルール）
 - 絵文字は使用しない
 - ユーザー承認なしでコミットしない
 

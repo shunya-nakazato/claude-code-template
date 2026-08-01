@@ -1,7 +1,7 @@
 # Lessons
 
-## 1. プランファイルの編集には Bash を使う
-- `.claude/plans/` 配下は `cat >` / `cat >>` で編集し、承認待ちを回避する
+## 1. プランファイルは Write/Edit ツールで編集する
+- `.claude/plans/` 配下は settings.json の permissions で許可済み。承認回避のための `cat >` 迂回は不要
 
 ## 2. Codex FAIL の繰り返しに固執しない
 - 3回連続 FAIL で致命的問題がなければ独自判断で進行する

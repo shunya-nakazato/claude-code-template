@@ -27,7 +27,7 @@ FILTERED=$(printf '%s' "$COMMAND" | sed \
 )
 
 if printf '%s' "$FILTERED" | grep -qE '(^|[ "'"'"'=])/(Users|home|tmp|var|etc|opt)/'; then
-  echo '{"decision":"block","reason":"絶対パス検出: Bashコマンドでは相対パスを使用してください（lessons.md #4）"}'
+  echo '{"decision":"block","reason":"絶対パス検出: Bashコマンドでは相対パスを使用してください"}'
   exit 0
 fi
 
