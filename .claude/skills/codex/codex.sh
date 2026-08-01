@@ -46,9 +46,17 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 PLANS_DIR="$PROJECT_ROOT/.claude/plans"
 
+# リトライ設定
+MAX_RETRIES=3
+RETRY_WAIT=5
+
 # ヘルパー関数
 log_info() {
     echo -e "${BLUE}[INFO]${NC} $1"
+}
+
+log_warn() {
+    echo -e "${YELLOW}[WARN]${NC} $1"
 }
 
 log_error() {
@@ -77,32 +85,65 @@ get_latest_plan() {
     echo "$latest"
 }
 
-# 出力を tee して stdout に流しつつ、空応答を検出する
-# (codex exec が無音で終了するケースがあるため呼び出し側で検証する)
+# codex を実行し、--output-last-message で受けた最終回答のみを検証する
+# (進捗ログと最終回答の混在による誤判定を避けるため、判定対象をファイルに分離する)
+# 使い方: run_codex_capture <検証モード go|review> <codexコマンド...>
+#   go:     最終回答が非空 かつ 単語として GO または FAIL を含めば成功
+#   review: 最終回答が非空なら成功 (review は GO/FAIL を出力しない仕様)
 run_codex_capture() {
-    local tmp
-    tmp=$(mktemp)
+    local mode="$1"
+    shift
+    local last_msg
+    last_msg=$(mktemp)
     local exit_code=0
 
     # stderr は分離せず stdout と統合して見せる (Codex 進捗ログを失わないため)
-    "$@" 2>&1 | tee "$tmp"
-    exit_code=${PIPESTATUS[0]}
+    if "$@" --output-last-message "$last_msg" 2>&1; then
+        exit_code=0
+    else
+        exit_code=$?
+    fi
 
     if [ "$exit_code" -ne 0 ]; then
         log_error "codex が異常終了しました (exit=$exit_code)"
-        rm -f "$tmp"
+        rm -f "$last_msg"
         return "$exit_code"
     fi
 
-    # ファイルが空なら無音応答とみなす
-    # (GO/FAIL マーカーの検証は plan-codex-error-skip で導入予定。現状は空チェックのみ)
-    if [ ! -s "$tmp" ]; then
-        log_error "codex の出力が空でした。再実行するか手動でレビューしてください"
-        rm -f "$tmp"
+    if [ ! -s "$last_msg" ]; then
+        log_error "codex の最終回答が空でした"
+        rm -f "$last_msg"
         return 1
     fi
 
-    rm -f "$tmp"
+    if [ "$mode" = "go" ] && ! grep -qw -e GO -e FAIL "$last_msg"; then
+        log_error "codex の最終回答に GO/FAIL マーカーが含まれていません"
+        rm -f "$last_msg"
+        return 1
+    fi
+
+    rm -f "$last_msg"
+    return 0
+}
+
+# codex 実行エラー時に最大 MAX_RETRIES 回試行し、全滅した場合は SKIP を出力して正常終了する
+# (レビュー待ちで作業全体がブロックされるのを防ぐ。SKIP は「レビュー省略で続行可」の意)
+# 使い方: run_with_retry <検証モード go|review> <codexコマンド...>
+run_with_retry() {
+    local attempt
+    for attempt in $(seq 1 "$MAX_RETRIES"); do
+        if run_codex_capture "$@"; then
+            return 0
+        fi
+        log_error "codex 実行エラー ($attempt/$MAX_RETRIES)"
+        if [ "$attempt" -lt "$MAX_RETRIES" ]; then
+            sleep "$RETRY_WAIT"
+        fi
+    done
+
+    log_warn "codex が${MAX_RETRIES}回連続でエラーになったためレビューをスキップします"
+    log_warn "エラー内容は上記ログを確認してください (未ログイン等の環境問題の場合は codex login 後に再実行)"
+    echo "SKIP"
     return 0
 }
 
@@ -120,7 +161,7 @@ run_go() {
     local plan_content
     plan_content=$(cat "$plan_file")
 
-    run_codex_capture "$CODEX" exec "以下のplan.mdをレビューしてください。
+    run_with_retry go "$CODEX" exec "以下のplan.mdをレビューしてください。
 
 レビュー基準:
 - 致命的なバグ、セキュリティホール、データ損失リスクのみ指摘する
@@ -136,7 +177,7 @@ $plan_content"
 # コードレビュー
 run_review() {
     log_info "コードレビューを実行"
-    run_codex_capture "$CODEX" exec review "指摘は致命的な欠陥やセキュリティホールなど重要度が中〜高のものに限定してください。軽微なスタイルや好みの問題は指摘不要です。"
+    run_with_retry review "$CODEX" exec review "指摘は致命的な欠陥やセキュリティホールなど重要度が中〜高のものに限定してください。軽微なスタイルや好みの問題は指摘不要です。"
 }
 
 # 使用方法を表示
