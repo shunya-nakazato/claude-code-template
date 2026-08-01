@@ -10,26 +10,17 @@ Thumbs.db
 *.swp
 *.swo
 
-# Dependencies
-node_modules/
-
 # Environment
 .env
 .env.local
 .env.*.local
 
 # Build
-.next/
-out/
 dist/
 build/
 
-# Docker
-docker-compose.override.yml
-
 # Logs
 *.log
-npm-debug.log*
 
 # Test
 coverage/

@@ -1,3 +1,5 @@
 settings.local.json
-plans
-tasks
+plans/*
+!plans/.gitkeep
+tasks/*
+!tasks/.gitkeep
