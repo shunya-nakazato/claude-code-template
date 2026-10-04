@@ -15,7 +15,7 @@ Claude Code を活用した開発プロジェクトのテンプレートリポ�
 - `.claude/rules/` — プロジェクト全体の不変ルールを定義するファイル群
 - `.claude/skills/` — ワークフローを自動化するスキル（`/commit`, `/plan-review` 等）
 - `.claude/hooks/` — Claude Code のフックスクリプト（Bash コマンド検査、セッション開始時の `core.hooksPath` の設定）
-- `.claude/git-hooks/` — git の hook。`pre-commit` が commit される内容を gitleaks で検査する。セッション開始時に `core.hooksPath` がここに向く（既に別の値があれば変えない）
+- `.claude/git-hooks/` — git の hook。`pre-commit` が commit される内容を gitleaks で検査する。セッション開始時に `core.hooksPath` がここに向く（既に別の値があれば変えない）。Claude Code を使わずに clone した場合は、`git config core.hooksPath .claude/git-hooks` を一度実行する
 - `.gitleaks.toml` — gitleaks の設定（デフォルトルール + 誤検知の許可リスト）。検査はローカルの gitleaks で実行するため、`brew install gitleaks` が必要
 - `.claude/plans/` — タスクごとの詳細プラン（gitignore 対象、`.gitkeep` のみ追跡）
 - `.claude/tasks/` — タスク一覧（gitignore 対象、`.gitkeep` のみ追跡）
