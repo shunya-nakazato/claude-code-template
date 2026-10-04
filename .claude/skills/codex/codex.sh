@@ -1,16 +1,7 @@
 #!/bin/bash
 
-# Codex CLI ラッパースクリプト
-# codex コマンドのGO判定・コードレビューを簡易実行する
-#
-# 使用方法:
-#   ./.claude/skills/codex/codex.sh go [plan-file]   # GO判定（plan.mdのレビュー）
-#   ./.claude/skills/codex/codex.sh review           # コードレビュー
-#
-# 引数:
-#   go    - planの承認判定
-#           plan-file を指定しない場合、最新のplan-*.mdを使用
-#   review - コードレビュー
+# Codex CLI でプランの GO 判定とコードレビューを行うラッパー。
+# Usage: codex.sh go [plan-file] | codex.sh review
 
 set -e
 
@@ -50,17 +41,28 @@ PLANS_DIR="$PROJECT_ROOT/.claude/plans"
 MAX_RETRIES=3
 RETRY_WAIT=5
 
+# 1回の試行の上限 [秒]。codex がハングしたとき、これが無いとリトライも SKIP も発火しない
+# (判定はすべて codex の終了を待つため)。既定 180s は実測 8s の20倍で、
+# MAX_RETRIES 回すべて時間切れになっても 3 * (180+5+5) = 570s と呼び出し側の上限 600s に収まる
+CODEX_TIMEOUT_S="${CODEX_TIMEOUT_S:-180}"
+# TERM から KILL までの猶予 [秒]
+KILL_GRACE_S=5
+# coreutils の timeout(1) に合わせる
+TIMEOUT_EXIT_CODE=124
+
 # ヘルパー関数
+# ログは stderr へ出す。stdout へ書くと、コマンド置換の中で呼んだときに
+# 画面に出ないまま値として捕まる (get_latest_plan がこれで壊れていた)
 log_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
+    echo -e "${BLUE}[INFO]${NC} $1" >&2
 }
 
 log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
+    echo -e "${YELLOW}[WARN]${NC} $1" >&2
 }
 
 log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
+    echo -e "${RED}[ERROR]${NC} $1" >&2
 }
 
 # codex コマンドの存在確認
@@ -77,6 +79,7 @@ check_codex() {
 # 最新のplanファイルを取得
 get_latest_plan() {
     local latest
+    # プラン名は plan-<YYYYMMDDTHHmmssZ>-<slug>.md。-t は「いま書いているプラン」を拾う意図
     latest=$(ls -t "$PLANS_DIR"/plan-*.md 2>/dev/null | head -1)
     if [ -z "$latest" ]; then
         log_error "planファイルが見つかりません: $PLANS_DIR/plan-*.md"
@@ -85,11 +88,51 @@ get_latest_plan() {
     echo "$latest"
 }
 
-# codex を実行し、--output-last-message で受けた最終回答のみを検証する
-# (進捗ログと最終回答の混在による誤判定を避けるため、判定対象をファイルに分離する)
-# 使い方: run_codex_capture <検証モード go|review> <codexコマンド...>
-#   go:     最終回答が非空 かつ 単語として GO または FAIL を含めば成功
-#   review: 最終回答が非空なら成功 (review は GO/FAIL を出力しない仕様)
+# タイムアウト付きで実行する。macOS には timeout(1) が無いため自前で見張る。
+# 戻り値: コマンドの終了コード。時間切れなら TIMEOUT_EXIT_CODE
+run_with_timeout() {
+    local seconds="$1"
+    shift
+    local marker
+    marker=$(mktemp)
+
+    # 本体も見張り役も、子孫ごと止められるよう専用のプロセスグループで起動する
+    # (bash はジョブ制御が有効なときだけバックグラウンドジョブに新しい pgid を与える)
+    set -m
+    "$@" &
+    local cmd_pid=$!
+
+    (
+        sleep "$seconds"
+        kill -0 "$cmd_pid" 2>/dev/null || exit 0
+        # 中身を書く。空ファイルだと [ -s ] が常に偽になり時間切れを検出できない
+        printf 'timeout\n' > "$marker"
+        kill -TERM "-$cmd_pid" 2>/dev/null   # 負の PID = プロセスグループ全体
+        sleep "$KILL_GRACE_S"
+        kill -KILL "-$cmd_pid" 2>/dev/null
+    ) &
+    local watchdog_pid=$!
+    set +m
+
+    local exit_code=0
+    wait "$cmd_pid" || exit_code=$?
+
+    if [ -s "$marker" ]; then
+        # 本体が TERM で落ちても TERM を無視する子は残る。
+        # 見張り役の KILL まで待ってから戻る (残したまま次の試行を始めない)
+        wait "$watchdog_pid" 2>/dev/null || true
+        exit_code="$TIMEOUT_EXIT_CODE"
+    else
+        # 見張り役だけを殺すと内側の sleep が残り、継承した stdout を
+        # タイムアウトぶん握り続ける (パイプ越しの呼び出し側がそこで止まる)
+        kill -TERM "-$watchdog_pid" 2>/dev/null || true
+        wait "$watchdog_pid" 2>/dev/null || true
+    fi
+
+    rm -f "$marker"
+    return "$exit_code"
+}
+
 run_codex_capture() {
     local mode="$1"
     shift
@@ -98,10 +141,16 @@ run_codex_capture() {
     local exit_code=0
 
     # stderr は分離せず stdout と統合して見せる (Codex 進捗ログを失わないため)
-    if "$@" --output-last-message "$last_msg" 2>&1; then
+    if run_with_timeout "$CODEX_TIMEOUT_S" "$@" --output-last-message "$last_msg" 2>&1; then
         exit_code=0
     else
         exit_code=$?
+    fi
+
+    if [ "$exit_code" -eq "$TIMEOUT_EXIT_CODE" ]; then
+        log_error "codex が ${CODEX_TIMEOUT_S}s 応答しなかったため打ち切りました (CODEX_TIMEOUT_S で変更できる)"
+        rm -f "$last_msg"
+        return "$exit_code"
     fi
 
     if [ "$exit_code" -ne 0 ]; then
@@ -126,9 +175,6 @@ run_codex_capture() {
     return 0
 }
 
-# codex 実行エラー時に最大 MAX_RETRIES 回試行し、全滅した場合は SKIP を出力して正常終了する
-# (レビュー待ちで作業全体がブロックされるのを防ぐ。SKIP は「レビュー省略で続行可」の意)
-# 使い方: run_with_retry <検証モード go|review> <codexコマンド...>
 run_with_retry() {
     local attempt
     for attempt in $(seq 1 "$MAX_RETRIES"); do
@@ -149,7 +195,12 @@ run_with_retry() {
 
 # GO判定: planのレビュー
 run_go() {
-    local plan_file="${1:-$(get_latest_plan)}"
+    local plan_file="$1"
+
+    # 置換の中では exit がサブシェルしか止めないため、終了コードを親で受ける
+    if [ -z "$plan_file" ]; then
+        plan_file=$(get_latest_plan) || exit 1
+    fi
 
     if [ ! -f "$plan_file" ]; then
         log_error "planファイルが存在しません: $plan_file"
