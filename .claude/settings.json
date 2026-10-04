@@ -21,15 +21,14 @@
             "statusMessage": "Bashコマンドチェック中..."
           }
         ]
-      },
+      }
+    ],
+    "SessionStart": [
       {
-        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/gitleaks-pre-commit.sh",
-            "timeout": 120,
-            "statusMessage": "コミット前の gitleaks スキャン実行中..."
+            "command": "bash .claude/hooks/git-hooks-path.sh"
           }
         ]
       }

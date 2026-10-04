@@ -1,0 +1,15 @@
+#!/bin/sh
+# commit される内容を gitleaks で検査し、秘密情報があれば commit を止める。
+# git がリポジトリのルートで、add の後・commit の直前に実行する。commit -a やパス指定の commit でも、
+# git が GIT_INDEX_FILE で渡す一時 index を gitleaks（git diff --cached）が読むので、取り込まれる変更が見える
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "gitleaks が見つかりません。brew install gitleaks でインストールしてから再度 commit してください。" >&2
+  exit 1
+fi
+
+# オプションは gitleaks 公式 pre-commit フック定義（.pre-commit-hooks.yaml）と同一
+if ! gitleaks git --pre-commit --redact --staged --verbose . >&2; then
+  echo "gitleaks が秘密情報を検出したか、実行に失敗したため commit を止めました。" >&2
+  exit 1
+fi
